@@ -7,19 +7,64 @@ output:
 
 
 ## Loading and preprocessing the data
+```{r}
+unzip("activity.zip")
 
+activity <- read.csv("activity.csv", 
+                     colClasses = c("integer", "Date", "integer"), 
+                     na.strings = "NA")
+summary(activity)
+```
 
 
 ## What is mean total number of steps taken per day?
+```{r}
+# Ignore missing values
+DF1 <- activity[!is.na(activity$steps),]
 
+# Get total Steps for each day
+Steps <- data.frame(total_Steps = tapply(DF1$steps, DF1$date, sum))
+Steps$Date <- as.Date(rownames(Steps))
 
+# Histogram Plot
+hist(Steps$total_Steps, col = 'red', 
+     main="Total Number Of Steps Per Day", 
+     xlab="Total Number of Steps")
+
+# Summary of Mean & Median # of steps/day
+meanSteps <- mean(Steps$total_Steps)
+medianSteps <- median(Steps$total_Steps)
+cat("Mean Daily Steps: ", meanSteps, "Steps")
+cat("Median Daily Steps: ",medianSteps, "Steps")
+```
 
 ## What is the average daily activity pattern?
+```{r}
+meanStepsInterval <- aggregate(steps ~ interval, DF1, mean)
+head(meanStepsInterval)
 
+# Histogram Plot
+library("ggplot2")
+ggplot(data = meanStepsInterval, aes(x = interval, y = steps)) +
+        geom_line() +
+        ggtitle("Average Number of daily steps at different Intervals") +
+        xlab("Interval (minutes)") + 
+        ylab("Average Number of Steps")
+
+
+max_interval <- meanStepsInterval[which.max(meanStepsInterval$steps),]
+max_interval
+```
+        
+* As shown in the figure above, Time interval "**[835]**" contains the overall maximum number of steps **(~ 206 steps / day)**.
 
 
 ## Imputing missing values
-
+```{r}
+# 1- Total Number of Missing values
+sum(is.na(activity))
+```
+* Number of missing rows = **2304 rows**
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
